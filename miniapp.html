@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Заказ с фермы</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, #000);
+      padding: 16px;
+    }
+    h2 { text-align: center; }
+    .product {
+      border: 1px solid #ccc;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+    }
+    input, button, select {
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      font-size: 16px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h2>🐤 Заказ продукции</h2>
+
+  <div id="catalog">
+    <div class="product">
+      <strong>Мясо перепелов</strong> — 800 ₽/кг<br/>
+      <input type="number" min="0" placeholder="Сколько кг?" data-name="Мясо перепелов" data-price="800" />
+    </div>
+    <div class="product">
+      <strong>Яйцо перепелиное</strong> — 120 ₽/десяток<br/>
+      <input type="number" min="0" placeholder="Сколько десятков?" data-name="Яйцо перепелиное" data-price="120" />
+    </div>
+    <div class="product">
+      <strong>Удобрение (помёт)</strong> — 40 ₽/кг<br/>
+      <input type="number" min="0" placeholder="Сколько кг?" data-name="Удобрение" data-price="40" />
+    </div>
+  </div>
+
+  <h3>📝 Ваши данные</h3>
+  <input id="name" type="text" placeholder="Ваше имя" />
+  <input id="phone" type="tel" placeholder="Телефон" />
+  <input id="address" type="text" placeholder="Адрес доставки" />
+
+  <button onclick="sendOrder()">📦 Оформить заказ</button>
+
+  <script>
+    function sendOrder() {
+      const inputs = document.querySelectorAll("#catalog input");
+      let order = [];
+      let total = 0;
+
+      inputs.forEach(input => {
+        const qty = parseFloat(input.value);
+        if (qty > 0) {
+          const name = input.dataset.name;
+          const price = parseFloat(input.dataset.price);
+          order.push(`${name} — ${qty} × ${price}₽ = ${qty * price}₽`);
+          total += qty * price;
+        }
+      });
+
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const address = document.getElementById("address").value.trim();
+
+      if (!name || !phone || !address || order.length === 0) {
+        alert("Пожалуйста, заполните все поля и выберите хотя бы один товар.");
+        return;
+      }
+
+      const message = `🛒 Новый заказ:\n\n` +
+        order.join('\n') +
+        `\n\n💰 Итого: ${total}₽\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
+
+      if (window.Telegram && Telegram.WebApp) {
+        Telegram.WebApp.sendData(message);
+        Telegram.WebApp.close();
+      } else {
+        console.log(message); // для отладки вне Telegram
+        alert("Заказ сформирован. Проверь консоль (F12).");
+      }
+    }
+  </script>
+</body>
+</html>
